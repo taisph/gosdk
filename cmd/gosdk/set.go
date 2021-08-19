@@ -18,9 +18,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	semver "github.com/hashicorp/go-version"
+
 	"github.com/taisph/gosdk/internal/golangdlversion"
 )
 
@@ -38,7 +40,9 @@ func set(version string) error {
 		return fmt.Errorf("get go sdk root: %s", err)
 	}
 	if _, err := os.Stat(filepath.Join(root, golangdlversion.UnpackedOkay)); err != nil {
-		return fmt.Errorf("%s: not downloaded. Run 'go get golang.org/dl/%s' followed by '%s download' to install to %v", version, version, version, root)
+		if err := download(version); err != nil {
+			return fmt.Errorf("%s: not downloaded and failed to download: %s. Run 'go get golang.org/dl/%s' followed by '%s download' to install to %v", version, err, version, version, root)
+		}
 	}
 
 	home, err := golangdlversion.Homedir()
@@ -60,4 +64,23 @@ func set(version string) error {
 	}
 
 	return nil
+}
+
+func download(version string) error {
+	if err := run(exec.Command("go", "get", "golang.org/dl/" + version)); err != nil {
+		return err
+	}
+
+	if err := run(exec.Command(version, "download")); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func run(cmd *exec.Cmd) error {
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
 }
