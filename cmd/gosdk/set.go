@@ -41,7 +41,7 @@ func set(version string) error {
 	}
 	if _, err := os.Stat(filepath.Join(root, golangdlversion.UnpackedOkay)); err != nil {
 		if err := download(version); err != nil {
-			return fmt.Errorf("%s: not downloaded and failed to download: %s. Run 'go get golang.org/dl/%s' followed by '%s download' to install to %v", version, err, version, version, root)
+			return fmt.Errorf("%s: not downloaded and failed to download: %s. Run 'go install golang.org/dl/%s@latest' followed by '%s download' to install to %v", version, err, version, version, root)
 		}
 	}
 
@@ -67,7 +67,7 @@ func set(version string) error {
 }
 
 func download(version string) error {
-	if err := run(exec.Command("go", "get", "golang.org/dl/" + version)); err != nil {
+	if err := run(exec.Command("go", "install", "golang.org/dl/"+version+"@latest")); err != nil {
 		return err
 	}
 
